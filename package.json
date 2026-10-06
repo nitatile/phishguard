@@ -1,0 +1,9 @@
+{
+  "name": "phishguard-dev",
+  "scripts": {
+    "dev": "concurrently -n BACKEND,FRONTEND -c blue,green \"cd backend && venv\\Scripts\\python.exe -m uvicorn main:app --reload\" \"cd frontend && npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
