@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { loginUser } from "../api";
+import Spinner from "../components/Spinner";
 
 export default function Login({ onLoginSuccess, goToRegister }) {
   const [email, setEmail] = useState("");
@@ -15,7 +16,7 @@ export default function Login({ onLoginSuccess, goToRegister }) {
       await loginUser(email, password);
       onLoginSuccess();
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Couldn't log in. Check your email and password.");
     } finally {
       setLoading(false);
     }
@@ -39,7 +40,7 @@ export default function Login({ onLoginSuccess, goToRegister }) {
           </div>
           {error && <p className="error-text">{error}</p>}
           <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ marginTop: 6 }}>
-            {loading ? "Logging in…" : "Log in"}
+            {loading ? (<><Spinner size={15} /> Logging in…</>) : "Log in"}
           </button>
         </form>
 

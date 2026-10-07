@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { registerUser } from "../api";
+import Spinner from "../components/Spinner";
 
 export default function Register({ goToLogin }) {
   const [name, setName] = useState("");
@@ -9,15 +10,21 @@ export default function Register({ goToLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const passwordTooShort = password.length > 0 && password.length < 8;
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
     setLoading(true);
     try {
       await registerUser(name, email, password, department);
       goToLogin();
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Couldn't create your account. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -41,7 +48,17 @@ export default function Register({ goToLogin }) {
           </div>
           <div className="field">
             <label>Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+              placeholder="••••••••"
+            />
+            <p className="field-hint" style={{ color: passwordTooShort ? "var(--danger)" : undefined }}>
+              At least 8 characters
+            </p>
           </div>
           <div className="field">
             <label>Department (optional)</label>
@@ -49,7 +66,7 @@ export default function Register({ goToLogin }) {
           </div>
           {error && <p className="error-text">{error}</p>}
           <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ marginTop: 6 }}>
-            {loading ? "Creating account…" : "Register"}
+            {loading ? (<><Spinner size={15} /> Creating account…</>) : "Register"}
           </button>
         </form>
 

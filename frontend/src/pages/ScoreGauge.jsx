@@ -1,4 +1,4 @@
-const COLORS = { high: "#D6483C", medium: "#C6892E", low: "#1E9166" };
+const COLORS = { high: "#E11D48", medium: "#D97706", low: "#059669" };
 
 export default function ScoreGauge({ score, level }) {
   const size = 84;

@@ -1,17 +1,37 @@
 import { useEffect, useState } from "react";
 import { getScenarios, submitAnswer } from "../api";
+import Spinner from "../components/Spinner";
+import { DEMO_SCENARIOS } from "../demoData";
 
 export default function Training() {
   const [scenarios, setScenarios] = useState([]);
   const [index, setIndex] = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [usingDemo, setUsingDemo] = useState(false);
 
   useEffect(() => {
-    getScenarios().then(setScenarios);
+    getScenarios()
+      .then((data) => setScenarios(data))
+      .catch(() => {
+        setScenarios(DEMO_SCENARIOS);
+        setUsingDemo(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  if (scenarios.length === 0) return <div className="page"><p className="empty-note">Loading scenarios…</p></div>;
+  if (loading) {
+    return (
+      <div className="page">
+        <p className="empty-note"><Spinner size={14} /> Loading scenarios…</p>
+      </div>
+    );
+  }
+
+  if (scenarios.length === 0) {
+    return <div className="page"><p className="empty-note">No training scenarios are available right now.</p></div>;
+  }
 
   if (index >= scenarios.length) {
     return (
@@ -25,9 +45,19 @@ export default function Training() {
   const scenario = scenarios[index];
 
   async function handleAnswer(answer) {
-    const result = await submitAnswer(scenario.id, answer);
-    setFeedback(result);
-    if (result.correct) setScore((s) => s + 1);
+    if (usingDemo) {
+      const correct = answer === scenario.correct_answer;
+      setFeedback({ correct, explanation: scenario.explanation });
+      if (correct) setScore((s) => s + 1);
+      return;
+    }
+    try {
+      const result = await submitAnswer(scenario.id, answer);
+      setFeedback(result);
+      if (result.correct) setScore((s) => s + 1);
+    } catch (e) {
+      setFeedback({ correct: false, explanation: "Couldn't reach the server to grade this answer." });
+    }
   }
 
   function nextScenario() {
@@ -39,6 +69,7 @@ export default function Training() {
     <div className="page">
       <h2 className="page-title">Spot the phish</h2>
       <p className="page-sub">Scenario {index + 1} of {scenarios.length}</p>
+      {usingDemo && <p className="notice-banner" style={{ marginBottom: 20 }}>Showing demo scenarios — live connection unavailable.</p>}
 
       <div className="quiz-progress">
         {scenarios.map((_, i) => (
